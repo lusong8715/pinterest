@@ -65,13 +65,7 @@ class PinsController extends Controller
             if (isset($result['status']) && $result['status'] == 'failure') {
                 continue;
             }
-            $productId = $pins->product_id;
             $pins->delete();
-            if ($productId) {
-                $product = Product::find($productId);
-                $product->is_released = '0';
-                $product->save();
-            }
         }
     }
 
