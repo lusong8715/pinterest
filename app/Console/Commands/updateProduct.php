@@ -55,6 +55,18 @@ class updateProduct extends Command
             $product = Product::find($id);
             if ($product) {
                 $flag = false;
+                if ($product->title != $title) {
+                    $product->title = $title;
+                    $flag = true;
+                }
+                if ($product->sku != $sku) {
+                    $product->sku = $sku;
+                    $flag = true;
+                }
+                if ($product->url != $url) {
+                    $product->url = $url;
+                    $flag = true;
+                }
                 if ($product->category != $category) {
                     $product->category = $category;
                     $flag = true;
