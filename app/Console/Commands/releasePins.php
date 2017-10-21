@@ -102,10 +102,10 @@ class releasePins extends Command
             return;
         }
         $products = new Product();
-        $products = $products->where('is_released', '=', '0')->where('status', '=', '1')->where('category', '!=', '')->take($config->releases_num)->get();
+        $products = $products->where('is_released', '=', '0')->take($config->releases_num)->get();
         $isUpdate = false;
         foreach ($products as $product) {
-            $imageUrl = self::IMAGE_BASE_URL . urlencode($product->sku) . '.jpg';
+            $imageUrl = self::IMAGE_BASE_URL . rawurlencode($product->sku) . '.jpg';
             $category = $product->category;
             $board = strtolower(preg_replace('/\s+/', '-', $category));
 
