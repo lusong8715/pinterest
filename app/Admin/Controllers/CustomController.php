@@ -25,7 +25,7 @@ class CustomController extends Controller
     {
         return Admin::content(function (Content $content) {
 
-            $content->header('Custom');
+            $content->header('Scheduled Pins');
             $content->description('list');
 
             $content->body($this->grid());
@@ -70,9 +70,11 @@ class CustomController extends Controller
      *
      * @return Grid
      */
-    protected function grid()
+    protected function grid($published=false)
     {
-        return Admin::grid(Custom::class, function (Grid $grid) {
+        return Admin::grid(Custom::class, function (Grid $grid) use ($published) {
+            $grid->model()->where('status', '=', $published ? '1' : '0');
+            $grid->model()->orderBy('releases_time', 'desc');
 
             $grid->id('ID')->sortable();
             $grid->title();
@@ -80,22 +82,23 @@ class CustomController extends Controller
             $grid->board()->sortable();
             $grid->note();
             $grid->link();
-            $grid->status()->sortable()->display(function ($status) {
-                if ($status) {
-                    return '已发布';
-                } else {
-                    return '未发布';
-                }
+            $grid->status()->display(function () use ($published) {
+                return $published ? '已发布' : '未发布';
             });;
             $grid->releases_time()->sortable();
 
             $grid->disableExport();
+            if ($published) {
+                $grid->disableCreation();
+                $grid->actions(function ($actions) {
+                    $actions->disableEdit();
+                });
+            }
 
             $grid->filter(function ($filter) {
                 $filter->useModal();
                 // 禁用id查询框
                 $filter->disableIdFilter();
-                $filter->is('status', 'Release Status')->select([1 => '已发布', 0 => '未发布']);
                 $filter->like('title', 'Title');
                 $filter->is('board', 'Board')->select(Boards::all()->pluck('name', 'name'));
                 $filter->like('note', 'Note');
@@ -125,6 +128,14 @@ class CustomController extends Controller
                 // 去掉跳转列表按钮
                 $tools->disableListButton();
             });
+        });
+    }
+
+    public function published() {
+        return Admin::content(function (Content $content) {
+            $content->header('Published Pins');
+            $content->description('list');
+            $content->body($this->grid(true));
         });
     }
 }
