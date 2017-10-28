@@ -87,7 +87,7 @@ class releasePins extends Command
                         $pins->title = $custom->title;
                         $pins->board = $custom->board;
                         $pins->url = $result['data']['url'];
-                        $pins->is_custom = '1';
+                        $pins->way = '1';
                         $pins->save();
                     }
                 }

@@ -38,7 +38,7 @@ class updateProduct extends Command
      */
     public function handle()
     {
-        ini_set('memory_limit', '1048M');
+        ini_set('memory_limit', '1024M');
         $url = 'https://s3.amazonaws.com/static.jeulia.com/feed/pins-data.txt';
         $f = fopen($url, 'r');
         while(false !== ($data = fgetcsv($f, null, '~'))){

@@ -96,7 +96,15 @@ class PinsController extends Controller
             });
             $grid->saves()->sortable();
             $grid->comments()->sortable();
-            $grid->is_custom();
+            $grid->way()->display(function ($way) {
+                if ($way == '0') {
+                    return '产品';
+                } else if ($way == '1') {
+                    return '自定义';
+                } else {
+                    return '非本平台';
+                }
+            });
             $grid->created_at()->sortable();
 
             $grid->filter(function ($filter) {
@@ -110,7 +118,7 @@ class PinsController extends Controller
                 $filter->is('board', 'Pin Board')->select(Boards::all()->pluck('name', 'name'));
                 $filter->between('saves', 'Pin Saves');
                 $filter->between('comments', 'Pin Comments');
-                $filter->is('is_custom', 'Is Custom')->select([1 => 'Yes', 0 => 'No']);
+                $filter->is('way', 'Release Way')->select([0 => '产品', 1 => '自定义', 2 => '非本平台']);
                 $filter->between('created_at', 'Pin Created Time')->datetime();
             });
 

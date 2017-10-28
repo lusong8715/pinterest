@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Boards;
 use App\Models\Config;
 use App\Models\Pins;
 use Illuminate\Console\Command;
@@ -41,29 +42,69 @@ class updatePins extends Command
      */
     public function handle()
     {
+        ini_set('memory_limit', '1024M');
         $config = Config::find(1);
         if (!$config->username || !$config->access_token) {
             return;
         }
-        $datas = Pins::all();
-        foreach ($datas as $pins) {
-            $updateFlag = false;
-            $url = self::API_BASE_URL . 'pins/' . $pins->pin_id . '/?access_token=' . $config->access_token . '&fields=counts';
-            $result = curlRequest('get', $url);
-            if (isset($result['data']) && isset($result['data']['counts'])) {
-                $counts = $result['data']['counts'];
-                if (isset($counts['saves']) && $pins->saves != $counts['saves']) {
-                    $pins->saves = $counts['saves'];
-                    $updateFlag = true;
+        $nowH = date('H');
+        if (strlen($nowH) == 2 && substr($nowH, 0, 1) == '0') {
+            $nowH = substr($nowH, 1);
+        }
+        $boards = Boards::where('sync_pin_time', '=', $nowH)->get();
+        foreach ($boards as $board) {
+            $next = '';
+            while ($next !== false) {
+                $boardName = strtolower(preg_replace('/\s+/', '-', $board->name));
+                $url = $next == '' ? self::API_BASE_URL . 'boards/' . $config->username . '/' . $boardName . '/pins/?access_token=' . $config->access_token . '&fields=id%2Curl%2Ccounts%2Cnote' : $next;
+                $result = curlRequest('get', $url);
+                if (isset($result['page']) && $result['page']['cursor']) {
+                    $next = $result['page']['next'];
+                } else {
+                    $next = false;
                 }
-                if (isset($counts['comments']) && $pins->comments != $counts['comments']) {
-                    $pins->comments = $counts['comments'];
-                    $updateFlag = true;
+                if (isset($result['data'])) {
+                    foreach ($result['data'] as $data) {
+                        $pins = Pins::where('pin_id', '=', $data['id'])->take(1)->get();
+                        if (count($pins)) {
+                            $pins = $pins[0];
+                            $updateFlag = false;
+                            if ($pins->saves != $data['counts']['saves']) {
+                                $pins->saves = $data['counts']['saves'];
+                                $updateFlag = true;
+                            }
+                            if ($pins->comments != $data['counts']['comments']) {
+                                $pins->comments = $data['counts']['comments'];
+                                $updateFlag = true;
+                            }
+                            if ($updateFlag) {
+                                $pins->save();
+                            }
+                        } else {
+                            $pins = new Pins();
+                            $pins->pin_id = $data['id'];
+                            $pins->board = $board->name;
+                            $pins->url = $data['url'];
+                            $pins->saves = $data['counts']['saves'];
+                            $pins->comments = $data['counts']['comments'];
+                            $title = trim($data['note']);
+                            if ($title == '') {
+                                $title = 'No Title';
+                            } else {
+                                if (strlen($title) > 100) {
+                                    $title = substr($title, 0, 100) . '...';
+                                }
+                            }
+                            $pins->title = $title;
+                            $pins->way = '2';
+                            $pins->save();
+                        }
+                    }
+                } else {
+                    $next = false;
                 }
             }
-            if ($updateFlag) {
-                $pins->save();
-            }
+
         }
     }
 }

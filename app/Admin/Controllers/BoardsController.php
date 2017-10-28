@@ -105,6 +105,11 @@ class BoardsController extends Controller
             $grid->pins()->sortable();
             $grid->collaborators()->sortable();
             $grid->followers()->sortable();
+            $hours = array();
+            for ($i=0; $i<24; $i++) {
+                $hours[] = $i;
+            }
+            $grid->sync_pin_time()->editable('select', $hours);
 
             $grid->disableExport();
             $grid->disableRowSelector();
@@ -135,6 +140,11 @@ class BoardsController extends Controller
 
             $form->display('id', 'ID');
             $form->text('name', 'Name')->rules('required');
+            $hours = array();
+            for ($i=0; $i<24; $i++) {
+                $hours[] = $i;
+            }
+            $form->select('sync_pin_time', 'Sync Pin Time')->options($hours)->default(2);
 
             $form->tools(function (Form\Tools $tools) {
                 // 去掉跳转列表按钮
