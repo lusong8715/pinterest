@@ -51,6 +51,7 @@ class releasePins extends Command
         }
         $username = $config->username;
         $accessToken = $config->access_token;
+        $updateSitemap = false;
         // ---------------Start Release Custom-----------------
         $nowTime = date('Y-m-d H');
         $customs = Custom::where('status', '=', '0')->where('releases_time', '>=', $nowTime)->get();
@@ -89,6 +90,7 @@ class releasePins extends Command
                         $pins->url = $result['data']['url'];
                         $pins->way = '1';
                         $pins->save();
+                        $updateSitemap = true;
                     }
                 }
             }
@@ -103,7 +105,6 @@ class releasePins extends Command
         }
         $products = new Product();
         $products = $products->where('is_released', '=', '0')->take($config->releases_num)->get();
-        $isUpdate = false;
         foreach ($products as $product) {
             $imageUrl = self::IMAGE_BASE_URL . rawurlencode($product->sku) . '.jpg';
             $category = $product->category;
@@ -145,10 +146,12 @@ class releasePins extends Command
                 $pins->save();
                 $product->is_released = '1';
                 $product->save();
-                $isUpdate = true;
+                $updateSitemap = true;
             }
         }
-        if ($isUpdate) {
+        // ---------------End Release Product-----------------
+
+        if ($updateSitemap) {
             // update sitemp
             $filename = public_path('upload') . '/sitemap.xml';
             $fp = fopen($filename, 'w');
@@ -161,6 +164,5 @@ class releasePins extends Command
             fwrite($fp, $xml);
             fclose($fp);
         }
-        // ---------------End Release Product-----------------
     }
 }
