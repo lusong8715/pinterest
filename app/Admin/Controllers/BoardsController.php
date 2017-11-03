@@ -92,15 +92,8 @@ class BoardsController extends Controller
         return Admin::grid(Boards::class, function (Grid $grid) {
 
             $grid->id('ID')->sortable();
-            $grid->name();
-            $grid->url()->display(function ($url) {
-                $text = $url;
-                if (substr($url, -1) == '/') {
-                    $text = substr($url, 0, -1);
-                }
-                $arr = explode('/', $text);
-                $text = end($arr);
-                return '<a href="'.$url.'" target="_blank">' . $text . '</a>';
+            $grid->name()->display(function ($name) {
+                return '<a href="'.$this->url.'" target="_blank">' . $name . '</a>';
             });
             $grid->pins()->sortable();
             $grid->collaborators()->sortable();

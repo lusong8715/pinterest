@@ -19,6 +19,7 @@ class CreateCustomTable extends Migration
             $table->string('board', 255);
             $table->string('note', 1024);
             $table->string('link', 1024)->nullable();
+            $table->string('url', 255)->nullable();
             $table->string('status', 1)->nullable()->default('0');
             $table->dateTime('releases_time');
         });

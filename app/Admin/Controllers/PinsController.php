@@ -5,8 +5,6 @@ namespace App\Admin\Controllers;
 use App\Models\Boards;
 use App\Models\Config;
 use App\Models\Pins;
-
-use App\Models\Product;
 use Encore\Admin\Grid;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
@@ -79,21 +77,14 @@ class PinsController extends Controller
         return Admin::grid(Pins::class, function (Grid $grid) {
 
             $grid->id('ID')->sortable();
-            $grid->pin_id();
+            $grid->pin_id()->display(function ($pinId) {
+                return '<a href="'.$this->url.'" target="_blank">' . $pinId . '</a>';
+            });;
             $grid->product_id();
             $grid->product_status()->editable('select', [1 => 1, 0 => 0]);
             $grid->product_sku();
             $grid->title()->limit(30);
             $grid->board();
-            $grid->url()->display(function ($url) {
-                $text = $url;
-                if (substr($url, -1) == '/') {
-                    $text = substr($url, 0, -1);
-                }
-                $arr = explode('/', $text);
-                $text = end($arr);
-                return '<a href="'.$url.'" target="_blank">' . $text . '</a>';
-            });
             $grid->saves()->sortable();
             $grid->comments()->sortable();
             $grid->way()->display(function ($way) {

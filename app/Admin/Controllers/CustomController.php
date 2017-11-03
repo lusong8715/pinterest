@@ -78,14 +78,25 @@ class CustomController extends Controller
 
             $grid->id('ID')->sortable();
             $grid->title();
-            $grid->image()->image();
-            $grid->board()->sortable();
+            $grid->image()->image()->display(function ($image) use ($published) {
+                if ($published && $this->url) {
+                    return '<a href="'.$this->url.'" target="_blank">' . $image . '</a>';
+                }
+                return $image;
+            });
+            $grid->board()->sortable()->display(function ($board) {
+                return '<div style="width: 110px">' . $board . '</div>';
+            });
             $grid->note();
-            $grid->link();
+            $grid->link()->display(function ($link) {
+                return '<a href="'.$link.'" target="_blank">' . $link . '</a>';
+            });
             $grid->status()->display(function () use ($published) {
-                return $published ? '已发布' : '未发布';
-            });;
-            $grid->releases_time()->sortable();
+                return '<div style="width: 50px">' . ($published ? '已发布' : '未发布') . '</div>';
+            });
+            $grid->releases_time()->sortable()->display(function ($time) {
+                return '<div style="width: 125px">' . $time . '</div>';
+            });
 
             $grid->disableExport();
             if ($published) {

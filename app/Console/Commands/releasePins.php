@@ -82,6 +82,7 @@ class releasePins extends Command
                     $result = curlRequest('post', $url, $data);
                     if (isset($result['data']) && isset($result['data']['id'])) {
                         $custom->status = '1';
+                        $custom->url = $result['data']['url'];
                         $custom->save();
                         $pins = new Pins();
                         $pins->pin_id = $result['data']['id'];
