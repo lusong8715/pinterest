@@ -110,7 +110,8 @@ class BoardsController extends Controller
                 $actions->disableEdit();
             });
             $grid->tools(function ($tools) {
-                $elem = '<span><a class="btn btn-sm btn-primary" style="margin-left: 20px" href="boards/sync"> 同步</a></span>';
+                $tools->disableRefreshButton();
+                $elem = '<a class="btn btn-sm btn-primary" href="boards/sync"><i class="fa fa-refresh"></i> 同步</a>';
                 $tools->append($elem);
             });
 

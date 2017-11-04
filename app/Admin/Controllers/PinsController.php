@@ -2,8 +2,10 @@
 
 namespace App\Admin\Controllers;
 
+use App\Admin\Widgets\Line;
 use App\Models\Boards;
 use App\Models\Config;
+use App\Models\PinDataHistory;
 use App\Models\Pins;
 use Encore\Admin\Grid;
 use Encore\Admin\Form;
@@ -79,14 +81,17 @@ class PinsController extends Controller
             $grid->id('ID')->sortable();
             $grid->pin_id()->display(function ($pinId) {
                 return '<a href="'.$this->url.'" target="_blank">' . $pinId . '</a>';
-            });;
+            });
             $grid->product_id();
-            $grid->product_status()->editable('select', [1 => 1, 0 => 0]);
             $grid->product_sku();
             $grid->title()->limit(30);
             $grid->board();
-            $grid->saves()->sortable();
-            $grid->comments()->sortable();
+            $grid->saves()->sortable()->display(function ($saves) {
+                return '<a href="/admin/chart/'.$this->id.'/saves" target="_blank">' . $saves . '</a>';
+            });
+            $grid->comments()->sortable()->display(function ($comments) {
+                return '<a href="/admin/chart/'.$this->id.'/comments" target="_blank">' . $comments . '</a>';
+            });
             $grid->way()->display(function ($way) {
                 if ($way == '0') {
                     return '产品';
@@ -103,7 +108,6 @@ class PinsController extends Controller
                 // 禁用id查询框
                 $filter->disableIdFilter();
                 $filter->is('product_id', 'Product Id');
-                $filter->is('product_status', 'Product Status')->select([1 => 'Enable', 0 => 'Disable']);
                 $filter->is('product_sku', 'Product Sku');
                 $filter->like('title', 'Title');
                 $filter->is('board', 'Pin Board')->select(Boards::all()->pluck('name', 'name'));
@@ -124,8 +128,59 @@ class PinsController extends Controller
         return Admin::form(Pins::class, function (Form $form) {
 
             $form->display('id', 'ID');
-            $form->text('product_status', 'Product Status');
             $form->display('created_at', 'Created At');
         });
+    }
+
+    public function chart($id, $type)
+    {
+        return Admin::content(function (Content $content) use ($id, $type) {
+
+            $content->header(ucfirst($type) . ' Line');
+            $content->description('Pin Id: ' . $id);
+
+            $datas = PinDataHistory::where('pins_id', '=', $id)->orderBy('update_date', 'asc')->get();
+            $labels = array();
+            $lineData = array();
+            foreach ($datas as $data) {
+                $lineData[] = $data->{$type.'_change'};
+                $labels[] = date('m/d', strtotime($data->update_date));
+            }
+            if (!empty($labels)) {
+                $token = csrf_token();
+                $script = <<<SCRIPT
+<form action="/admin/download/$id/$type" method="post" accept-charset="UTF-8">
+    <input type="hidden" name="_token" value="$token"/>
+    <a class="btn btn-sm btn-primary" id="download_data" style="margin-bottom: 20px" href="javascript:void(0)"> 下载</a>
+</form>
+<script type="text/javascript">
+    $('#download_data').click(function() {
+        $(this).parent().submit();
+    });
+</script>
+SCRIPT;
+
+                $content->row($script);
+            }
+            $labels = json_encode($labels);
+            $lineData = json_encode($lineData);
+            $content->row(new Line($labels, $lineData));
+        });
+    }
+
+    public function download($id, $type) {
+        header("Content-type:text/csv;");
+        header('Content-Disposition: attachment;filename="' .$type . '_' . $id . '.csv"');
+        header('Cache-Control: max-age=0');
+        $fp = fopen('php://output', 'a');
+        $head = array('Pins Id', ucfirst($type), ucfirst($type). ' Change', 'Update Date');
+        fputcsv($fp, $head);
+        $datas = PinDataHistory::where('pins_id', '=', $id)->orderBy('update_date', 'asc')->get();
+        foreach ($datas as $data) {
+            fputcsv($fp, array($id, $data->$type, $data->{$type.'_change'}, substr($data->update_date, 0, 10)));
+        }
+        flush();
+        fclose($fp);
+        return;
     }
 }

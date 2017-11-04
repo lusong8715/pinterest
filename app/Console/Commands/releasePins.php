@@ -139,7 +139,6 @@ class releasePins extends Command
                 $pins = new Pins();
                 $pins->pin_id = $result['data']['id'];
                 $pins->product_id = $product->id;
-                $pins->product_status = '1';
                 $pins->product_sku = $product->sku;
                 $pins->title = $product->title;
                 $pins->board = $board;
