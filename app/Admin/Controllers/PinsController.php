@@ -13,6 +13,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\ModelForm;
+use Illuminate\Support\Facades\DB;
 
 class PinsController extends Controller
 {
@@ -182,5 +183,56 @@ SCRIPT;
         flush();
         fclose($fp);
         return;
+    }
+
+    public function savesTop() {
+        // saves 30天内增长数量 top100
+        return Admin::content(function (Content $content) {
+            $content->header('Top100');
+            $content->description('saves');
+
+            $body = Admin::grid(Pins::class, function (Grid $grid) {
+                $grid->model()->select(DB::raw('pins.*, sum(pin_data_history.saves_change) as allsaves'));
+                $grid->model()->join('pin_data_history', 'pins.id', '=', 'pin_data_history.pins_id');
+                $grid->model()->groupBy('pins.id');
+                $grid->model()->orderBy('allsaves', 'desc');
+                $grid->model()->orderBy('pins.id', 'desc');
+                $grid->model()->take(100);
+
+                $grid->id('ID');
+                $grid->pin_id()->display(function ($pinId) {
+                    return '<a href="'.$this->url.'" target="_blank">' . $pinId . '</a>';
+                });
+                $grid->title();
+                $grid->board();
+                $grid->way()->display(function ($way) {
+                    if ($way == '0') {
+                        return '产品';
+                    } else if ($way == '1') {
+                        return '自定义';
+                    } else {
+                        return '非本平台';
+                    }
+                });
+                $grid->allsaves('saves');
+                $grid->created_at();
+
+                $grid->filter(function ($filter) {
+                    $filter->disableIdFilter();
+                });
+
+                $grid->disableActions();
+                $grid->disableCreation();
+                $grid->disablePagination();
+                $grid->disableFilter();
+                $grid->disableExport();
+                $grid->disableRowSelector();
+
+                $grid->tools(function ($tools) {
+                    $tools->disableRefreshButton();
+                });
+            });
+            $content->body($body);
+        });
     }
 }
