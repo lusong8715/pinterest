@@ -66,19 +66,15 @@ class updatePins extends Command
                 }
                 if (isset($result['data'])) {
                     foreach ($result['data'] as $data) {
-                        $savesChange = 0;
-                        $commentsChanage = 0;
                         $pins = Pins::where('pin_id', '=', $data['id'])->take(1)->get();
                         if (count($pins)) {
                             $pins = $pins[0];
                             $updateFlag = false;
                             if ($pins->saves != $data['counts']['saves']) {
-                                $savesChange = $data['counts']['saves'] - $pins->saves;
                                 $pins->saves = $data['counts']['saves'];
                                 $updateFlag = true;
                             }
                             if ($pins->comments != $data['counts']['comments']) {
-                                $commentsChanage = $data['counts']['comments'] - $pins->comments;
                                 $pins->comments = $data['counts']['comments'];
                                 $updateFlag = true;
                             }
@@ -103,15 +99,16 @@ class updatePins extends Command
                             $pins->title = $title;
                             $pins->way = '2';
                             $pins->save();
+
+                            // insert pin_data_history
+                            $pinDataHistory = new PinDataHistory();
+                            $pinDataHistory->pins_id = $pins->id;
+                            $pinDataHistory->saves = $pins->saves;
+                            $pinDataHistory->saves_change = 0;
+                            $pinDataHistory->comments = $pins->comments;
+                            $pinDataHistory->comments_change = 0;
+                            $pinDataHistory->save();
                         }
-                        // update pin_data_history
-                        $pinDataHistory = new PinDataHistory();
-                        $pinDataHistory->pins_id = $pins->id;
-                        $pinDataHistory->saves = $pins->saves;
-                        $pinDataHistory->saves_change = $savesChange;
-                        $pinDataHistory->comments = $pins->comments;
-                        $pinDataHistory->comments_change = $commentsChanage;
-                        $pinDataHistory->save();
                     }
                 } else {
                     $next = false;
