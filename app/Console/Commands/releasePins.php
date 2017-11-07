@@ -52,6 +52,7 @@ class releasePins extends Command
         $username = $config->username;
         $accessToken = $config->access_token;
         $updateSitemap = false;
+        date_default_timezone_set('America/New_York');
         // ---------------Start Release Custom-----------------
         $nowTime = date('Y-m-d H');
         $customs = Custom::where('status', '=', '0')->where('releases_time', '>=', $nowTime)->get();
