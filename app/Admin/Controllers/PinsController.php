@@ -214,7 +214,9 @@ SCRIPT;
                         return '非本平台';
                     }
                 });
-                $grid->allsaves('saves');
+                $grid->allsaves('saves')->display(function ($saves) {
+                    return '<a href="/admin/chart/'.$this->id.'/saves" target="_blank">' . $saves . '</a>';
+                });
                 $grid->created_at();
 
                 $grid->filter(function ($filter) {
