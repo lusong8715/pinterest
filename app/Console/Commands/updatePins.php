@@ -99,15 +99,6 @@ class updatePins extends Command
                             $pins->title = $title;
                             $pins->way = '2';
                             $pins->save();
-
-                            // insert pin_data_history
-                            $pinDataHistory = new PinDataHistory();
-                            $pinDataHistory->pins_id = $pins->id;
-                            $pinDataHistory->saves = $pins->saves;
-                            $pinDataHistory->saves_change = 0;
-                            $pinDataHistory->comments = $pins->comments;
-                            $pinDataHistory->comments_change = 0;
-                            $pinDataHistory->save();
                         }
                     }
                 } else {
