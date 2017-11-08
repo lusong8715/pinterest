@@ -141,15 +141,23 @@ class PinsController extends Controller
             $content->description('Pin Id: ' . $id);
 
             $datas = PinDataHistory::where('pins_id', '=', $id)->orderBy('update_date', 'asc')->get();
-            $labels = array();
-            $lineData = array();
-            foreach ($datas as $data) {
-                $lineData[] = $data->{$type.'_change'};
-                $labels[] = date('m/d', strtotime($data->update_date));
+            $chartDatas = array();
+            $i = 30;
+            while ($i > 0) {
+                $chartDatas[date('m/d', strtotime('-'.$i.' day'))] = 0;
+                $i--;
             }
-            if (!empty($labels)) {
-                $token = csrf_token();
-                $script = <<<SCRIPT
+            $chartDatas[date('m/d')] = 0;
+            foreach ($datas as $data) {
+                $key = date('m/d', strtotime($data->update_date));
+                if (isset($chartDatas[$key])) {
+                    $chartDatas[$key] += $data->{$type.'_change'};
+                }
+            }
+            $labels = array_keys($chartDatas);
+            $lineData = array_values($chartDatas);
+            $token = csrf_token();
+            $script = <<<SCRIPT
 <form action="/admin/download/$id/$type" method="post" accept-charset="UTF-8">
     <input type="hidden" name="_token" value="$token"/>
     <a class="btn btn-sm btn-primary" id="download_data" style="margin-bottom: 20px" href="javascript:void(0)"> 下载</a>
@@ -161,8 +169,7 @@ class PinsController extends Controller
 </script>
 SCRIPT;
 
-                $content->row($script);
-            }
+            $content->row($script);
             $labels = json_encode($labels);
             $lineData = json_encode($lineData);
             $content->row(new Line($labels, $lineData));

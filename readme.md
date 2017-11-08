@@ -6,3 +6,4 @@
 <p>php artisan migrate</p>
 <p>php artisan db:send</p>
 <p>.envexample改为.env</p>
+<p>检索"触发器"并执行</p>
