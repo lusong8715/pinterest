@@ -108,6 +108,7 @@ class PinsController extends Controller
                 $filter->useModal();
                 // 禁用id查询框
                 $filter->disableIdFilter();
+                $filter->is('pin_id', 'Pin Id');
                 $filter->is('product_id', 'Product Id');
                 $filter->is('product_sku', 'Product Sku');
                 $filter->like('title', 'Title');
