@@ -49,7 +49,7 @@ class DatabaseSeeder extends Seeder
                     'order' => 10,
                     'title' => 'Published Pins',
                     'icon' => 'fa-folder-open-o',
-                    'uri' => 'custom/published'
+                    'uri' => 'published'
                 ),
                 array(
                     'parent_id' => 0,
@@ -57,6 +57,13 @@ class DatabaseSeeder extends Seeder
                     'title' => 'Boards',
                     'icon' => 'fa-bold',
                     'uri' => 'boards'
+                ),
+                array(
+                    'parent_id' => 0,
+                    'order' => 12,
+                    'title' => 'Top100',
+                    'icon' => 'fa-arrow-up',
+                    'uri' => 'top/saves'
                 ),
             )
         );

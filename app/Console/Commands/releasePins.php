@@ -82,6 +82,7 @@ class releasePins extends Command
                     $result = curlRequest('post', $url, $data);
                     if (isset($result['data']) && isset($result['data']['id'])) {
                         $custom->status = '1';
+                        $custom->pin_id = $result['data']['id'];
                         $custom->url = $result['data']['url'];
                         $custom->save();
                         $pins = new Pins();
@@ -152,17 +153,7 @@ class releasePins extends Command
         // ---------------End Release Product-----------------
 
         if ($updateSitemap) {
-            // update sitemp
-            $filename = public_path('upload') . '/sitemap.xml';
-            $fp = fopen($filename, 'w');
-            $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-            $pins = Pins::all();
-            foreach ($pins as $pin) {
-                $xml .= sprintf('<sitemap><loc>%s</loc><lastmod>%s</lastmod></sitemap>', $pin->url, date('Y-m-d') );
-            }
-            $xml .= '</urlset>';
-            fwrite($fp, $xml);
-            fclose($fp);
+            updateSitemap();
         }
     }
 }

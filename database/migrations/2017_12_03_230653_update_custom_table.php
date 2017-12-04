@@ -14,7 +14,7 @@ class UpdateCustomTable extends Migration
     {
         Schema::table('custom', function (Blueprint $table) {
             $table->string('advertised', 1)->nullable()->default('0');
-            $table->string('root_pin')->nullable();
+            $table->string('root_pin', 64)->nullable();
             $table->dateTime('repin_time')->nullable();
         });
     }

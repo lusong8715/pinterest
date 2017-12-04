@@ -19,3 +19,16 @@ function curlRequest($type, $url, $data=array()) {
     curl_close($ch);
     return json_decode($output, true);
 }
+
+function updateSitemap() {
+    $filename = public_path('upload') . '/sitemap.xml';
+    $fp = fopen($filename, 'w');
+    $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    $pins = \App\Models\Pins::all();
+    foreach ($pins as $pin) {
+        $xml .= sprintf('<sitemap><loc>%s</loc><lastmod>%s</lastmod></sitemap>', $pin->url, date('Y-m-d') );
+    }
+    $xml .= '</urlset>';
+    fwrite($fp, $xml);
+    fclose($fp);
+}

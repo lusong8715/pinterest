@@ -14,6 +14,7 @@ class CreateCustomTable extends Migration
     {
         Schema::create('custom', function (Blueprint $table) {
             $table->increments('id');
+            $table->string('pin_id', 64);
             $table->string('title', 255);
             $table->string('image', 128);
             $table->string('board', 255);
