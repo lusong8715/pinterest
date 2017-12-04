@@ -11,8 +11,9 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\ModelForm;
+use Log;
 
-class CustomController extends Controller
+class PublishedController extends Controller
 {
     use ModelForm;
 
@@ -25,7 +26,7 @@ class CustomController extends Controller
     {
         return Admin::content(function (Content $content) {
 
-            $content->header('Scheduled Pins');
+            $content->header('Published Pins');
             $content->description('list');
 
             $content->body($this->grid());
@@ -41,7 +42,7 @@ class CustomController extends Controller
     {
         return Admin::content(function (Content $content) {
 
-            $content->header('Custom');
+            $content->header('Published');
             $content->description('create');
 
             $content->body($this->form());
@@ -58,7 +59,7 @@ class CustomController extends Controller
     {
         return Admin::content(function (Content $content) use ($id) {
 
-            $content->header('Custom');
+            $content->header('Published');
             $content->description('edit');
 
             $content->body($this->form()->edit($id));
@@ -73,12 +74,15 @@ class CustomController extends Controller
     protected function grid()
     {
         return Admin::grid(Custom::class, function (Grid $grid) {
-            $grid->model()->where('status', '=', '0');
+            $grid->model()->where('status', '=', '1');
             $grid->model()->orderBy('releases_time', 'desc');
 
             $grid->id('ID')->sortable();
             $grid->title();
             $grid->image()->image()->display(function ($image) {
+                if ($this->url) {
+                    return '<a href="'.$this->url.'" target="_blank">' . $image . '</a>';
+                }
                 return $image;
             });
             $grid->board()->sortable()->display(function ($board) {
@@ -91,8 +95,14 @@ class CustomController extends Controller
             $grid->releases_time()->sortable()->display(function ($time) {
                 return '<div style="width: 125px">' . $time . '</div>';
             });
+            $grid->advertised()->editable('select', ['1' => 'Yes', '0' => 'No']);
+            $grid->root_pin();
 
             $grid->disableExport();
+            $grid->disableCreation();
+            $grid->actions(function ($actions) {
+                $actions->disableEdit();
+            });
 
             $grid->filter(function ($filter) {
                 $filter->useModal();
@@ -102,6 +112,15 @@ class CustomController extends Controller
                 $filter->is('board', 'Board')->select(Boards::all()->pluck('name', 'name'));
                 $filter->like('note', 'Note');
                 $filter->between('releases_time', 'Release Time')->datetime();
+                $filter->is('advertised', 'Advertised')->select(['1' => 'Yes', '0' => 'No']);
+                $filter->where(function ($query) {
+                    if ($this->input == 1) {
+                        $query->whereRaw('root_pin is not null');
+                    } else {
+                        $query->whereRaw('root_pin is null');
+                    }
+                }, 'Is Repin')->select([1 => 'Yes', 2 => 'No']);
+                $filter->is('root_pin', 'Root Pin Id');
             });
         });
     }
@@ -111,22 +130,9 @@ class CustomController extends Controller
      *
      * @return Form
      */
-    protected function form()
-    {
+    protected function form() {
         return Admin::form(Custom::class, function (Form $form) {
-
-            $form->display('id', 'ID');
-            $form->text('title', 'Title')->rules('required');
-            $form->image('image')->rules('required');
-            $form->select('board', 'Board')->options(Boards::all()->pluck('name', 'name'));
-            $form->text('note', 'Note')->rules('required');
-            $form->text('link', 'Link(非必须)')->rules('url');
-            $form->datetime('releases_time', 'Release Time')->rules('required');
-
-            $form->tools(function (Form\Tools $tools) {
-                // 去掉跳转列表按钮
-                $tools->disableListButton();
-            });
+            $form->text('advertised', 'Advertised');
         });
     }
 }

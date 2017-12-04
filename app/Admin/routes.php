@@ -12,8 +12,8 @@ Route::group([
     $router->get('/', function (){return redirect('/admin/custom');});
     $router->resource('pins', 'PinsController');
     $router->resource('config', 'ConfigController');
-    $router->get('custom/published', 'CustomController@published');
     $router->resource('custom', 'CustomController');
+    $router->resource('published', 'PublishedController');
     $router->get('boards/sync', 'BoardsController@sync');
     $router->resource('boards', 'BoardsController');
     $router->get('chart/{id}/{type}', 'PinsController@chart');
