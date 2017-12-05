@@ -105,9 +105,6 @@ class PinsController extends Controller
             $grid->created_at()->sortable();
             $grid->advertised()->editable('select', ['1' => 'Yes', '0' => 'No']);
             $grid->root_pin();
-            $grid->repin_time('Last Repin Time')->sortable()->display(function ($time) {
-                return '<div style="width: 125px">' . $time . '</div>';
-            });
 
             $grid->filter(function ($filter) {
                 $filter->useModal();
@@ -131,7 +128,6 @@ class PinsController extends Controller
                     }
                 }, 'Is Repin')->select([1 => 'Yes', 2 => 'No']);
                 $filter->is('root_pin', 'Root Pin Id');
-                $filter->between('repin_time', 'Last Repin Time')->datetime();
             });
 
             $grid->disableCreation();
