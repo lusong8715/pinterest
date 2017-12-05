@@ -94,11 +94,6 @@ class PublishedController extends Controller
             $grid->releases_time()->sortable()->display(function ($time) {
                 return '<div style="width: 125px">' . $time . '</div>';
             });
-            $grid->advertised()->editable('select', ['1' => 'Yes', '0' => 'No']);
-            $grid->root_pin();
-            $grid->repin_time('Last Repin Time')->sortable()->display(function ($time) {
-                return '<div style="width: 125px">' . $time . '</div>';
-            });
 
             $grid->disableExport();
             $grid->disableCreation();
@@ -114,16 +109,6 @@ class PublishedController extends Controller
                 $filter->is('board', 'Board')->select(Boards::all()->pluck('name', 'name'));
                 $filter->like('note', 'Note');
                 $filter->between('releases_time', 'Release Time')->datetime();
-                $filter->is('advertised', 'Advertised')->select(['1' => 'Yes', '0' => 'No']);
-                $filter->where(function ($query) {
-                    if ($this->input == 1) {
-                        $query->whereRaw('root_pin is not null');
-                    } else {
-                        $query->whereRaw('root_pin is null');
-                    }
-                }, 'Is Repin')->select([1 => 'Yes', 2 => 'No']);
-                $filter->is('root_pin', 'Root Pin Id');
-                $filter->between('repin_time', 'Last Repin Time')->datetime();
             });
         });
     }
@@ -135,7 +120,7 @@ class PublishedController extends Controller
      */
     protected function form() {
         return Admin::form(Custom::class, function (Form $form) {
-            $form->text('advertised', 'Advertised');
+            $form->display('id', 'ID');
         });
     }
 }

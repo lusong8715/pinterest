@@ -103,6 +103,11 @@ class PinsController extends Controller
                 }
             });
             $grid->created_at()->sortable();
+            $grid->advertised()->editable('select', ['1' => 'Yes', '0' => 'No']);
+            $grid->root_pin();
+            $grid->repin_time('Last Repin Time')->sortable()->display(function ($time) {
+                return '<div style="width: 125px">' . $time . '</div>';
+            });
 
             $grid->filter(function ($filter) {
                 $filter->useModal();
@@ -117,6 +122,16 @@ class PinsController extends Controller
                 $filter->between('comments', 'Pin Comments');
                 $filter->is('way', 'Release Way')->select([0 => '产品', 1 => '自定义', 2 => '非本平台']);
                 $filter->between('created_at', 'Pin Created Time')->datetime();
+                $filter->is('advertised', 'Advertised')->select(['1' => 'Yes', '0' => 'No']);
+                $filter->where(function ($query) {
+                    if ($this->input == 1) {
+                        $query->whereRaw('root_pin is not null');
+                    } else {
+                        $query->whereRaw('root_pin is null');
+                    }
+                }, 'Is Repin')->select([1 => 'Yes', 2 => 'No']);
+                $filter->is('root_pin', 'Root Pin Id');
+                $filter->between('repin_time', 'Last Repin Time')->datetime();
             });
 
             $grid->disableCreation();
@@ -128,9 +143,7 @@ class PinsController extends Controller
     protected function form()
     {
         return Admin::form(Pins::class, function (Form $form) {
-
-            $form->display('id', 'ID');
-            $form->display('created_at', 'Created At');
+            $form->text('advertised', 'Advertised');
         });
     }
 
