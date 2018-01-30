@@ -95,6 +95,9 @@ class ConfigController extends Controller
             $form->text('note_temp', 'Note Template')->rules('required');
             $form->number('releases_num', 'Releases Number')->rules('required');
             $form->text('releases_time', 'Releases Time(多个用,隔开)')->rules('required');
+            $form->display('sync_board_id');
+            $form->display('sync_next_page');
+            $form->display('sync_last_date');
 
             $form->tools(function (Form\Tools $tools) {
                 // 去掉跳转列表按钮

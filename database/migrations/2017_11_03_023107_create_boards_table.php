@@ -19,7 +19,6 @@ class CreateBoardsTable extends Migration
             $table->integer('pins')->unsigned()->nullable()->default(0);
             $table->integer('collaborators')->unsigned()->nullable()->default(0);
             $table->integer('followers')->unsigned()->nullable()->default(0);
-            $table->string('sync_pin_time', 2)->default('2');
             $table->unique('name');
         });
     }

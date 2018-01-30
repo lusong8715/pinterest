@@ -48,21 +48,35 @@ class updatePins extends Command
         if (!$config->username || !$config->access_token) {
             return;
         }
-        $nowH = date('H');
-        if (strlen($nowH) == 2 && substr($nowH, 0, 1) == '0') {
-            $nowH = substr($nowH, 1);
+        $today = date('Y-m-d');
+        if ($config->sync_last_date) {
+            if (!$config->sync_board_id && !$config->sync_next_page && $config->sync_last_date == $today) {
+                return;
+            }
         }
-        $boards = Boards::where('sync_pin_time', '=', $nowH)->get();
+        $bid = (int)$config->sync_board_id;
+
+        $boards = Boards::where('id', '>=', $bid)->orderBy('id')->get();
+        $maxId = Boards::max('id');
+
         foreach ($boards as $board) {
+            $config->sync_board_id = $board->id;
             $next = '';
             while ($next !== false) {
                 $boardName = strtolower(preg_replace('/\s+/', '-', $board->name));
-                $url = $next == '' ? self::API_BASE_URL . 'boards/' . $config->username . '/' . $boardName . '/pins/?access_token=' . $config->access_token . '&fields=id%2Curl%2Ccounts%2Cnote' : $next;
+                $url = self::API_BASE_URL . 'boards/' . $config->username . '/' . $boardName . '/pins/?access_token=' . $config->access_token . '&fields=id%2Curl%2Ccounts%2Cnote%2Cimage%2Coriginal_link';
+                if ($next) {
+                    $url .= '&cursor=' . $next;
+                }
                 $result = curlRequest('get', $url);
                 if (isset($result['page']) && $result['page']['cursor']) {
-                    $next = $result['page']['next'];
+                    $config->sync_next_page = $next = $result['page']['cursor'];
                 } else {
                     $next = false;
+                    if ($board->id == $maxId) {
+                        $config->sync_board_id = 0;
+                    }
+                    $config->sync_next_page = '';
                 }
                 if (isset($result['data'])) {
                     foreach ($result['data'] as $data) {
@@ -76,6 +90,14 @@ class updatePins extends Command
                             }
                             if ($pins->comments != $data['counts']['comments']) {
                                 $pins->comments = $data['counts']['comments'];
+                                $updateFlag = true;
+                            }
+                            if ($pins->image_url != $data['image']['original']['url']) {
+                                $pins->image_url = $data['image']['original']['url'];
+                                $updateFlag = true;
+                            }
+                            if ($pins->original_link != $data['original_link']) {
+                                $pins->original_link = $data['original_link'];
                                 $updateFlag = true;
                             }
                             if ($updateFlag) {
@@ -97,15 +119,21 @@ class updatePins extends Command
                                 }
                             }
                             $pins->title = $title;
+                            $pins->image_url = $data['image']['original']['url'];
+                            $pins->original_link = $data['original_link'];
                             $pins->way = '2';
                             $pins->save();
                         }
+                        unset($pins);
                     }
                 } else {
-                    $next = false;
+                    break 2;
                 }
+                unset($result);
             }
         }
+        $config->sync_last_date = $today;
+        $config->save();
 
         $deleteDate = date('Y-m-d', strtotime('-30 day'));
         PinDataHistory::where('update_date', '<', $deleteDate)->delete();
