@@ -16,7 +16,8 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\updateProduct',
         'App\Console\Commands\releasePins',
         'App\Console\Commands\updatePins',
-        'App\Console\Commands\repinPins'
+        'App\Console\Commands\repinPins',
+        'App\Console\Commands\updateBoards',
     ];
 
     /**
@@ -28,6 +29,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('update:product')->twiceDaily(1, 13)->runInBackground();
+        $schedule->command('update:boards')->twiceDaily(2, 14)->runInBackground();
         $schedule->command('release:pins')->hourly()->runInBackground();
         $schedule->command('update:pins')->hourly()->runInBackground();
         $schedule->command('repin:pins')->dailyAt('21:00')->runInBackground();

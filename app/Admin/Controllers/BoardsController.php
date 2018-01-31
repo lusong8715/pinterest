@@ -4,13 +4,13 @@ namespace App\Admin\Controllers;
 
 
 use App\Models\Boards;
-use App\Models\Config;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\ModelForm;
+use Illuminate\Support\Facades\Artisan;
 
 class BoardsController extends Controller
 {
@@ -61,25 +61,6 @@ class BoardsController extends Controller
             $content->description('edit');
             $content->body($this->form()->edit($id));
         });
-    }
-
-    public function store()
-    {
-        $config = Config::find(1);
-        if ($config->username && $config->access_token) {
-            $apiBaseUrl = 'https://api.pinterest.com/v1/boards/';
-            $board = strtolower(preg_replace('/\s+/', '-', $_POST['name']));
-
-            $url = $apiBaseUrl . $config->username . '/' . $board . '/?access_token=' . $config->access_token . '&fields=id,name,url,counts';
-            $result = curlRequest('get', $url);
-            if (!isset($result['data']) || !isset($result['data']['id'])) {
-                $url = $apiBaseUrl . '?access_token=' . $config->access_token;
-                $data = array('name' => $_POST['name']);
-                curlRequest('post', $url, $data);
-            }
-        }
-
-        return $this->form()->store();
     }
 
     /**
@@ -138,26 +119,7 @@ class BoardsController extends Controller
     }
 
     public function sync() {
-        $config = Config::find(1);
-        if ($config->username && $config->access_token) {
-            $apiBaseUrl = 'https://api.pinterest.com/v1/boards/';
-            $boards = Boards::all();
-            foreach ($boards as $board) {
-                $name = strtolower(preg_replace('/\s+/', '-', $board->name));
-                $url = $apiBaseUrl . $config->username . '/' . $name . '/?access_token=' . $config->access_token . '&fields=id,name,url,counts';
-                $result = curlRequest('get', $url);
-                if (isset($result['data']) && isset($result['data']['id'])) {
-                    if ($name == strtolower(preg_replace('/\s+/', '-', $result['data']['name']))) {
-                        $board->name = $result['data']['name'];
-                    }
-                    $board->url = $result['data']['url'];
-                    $board->pins = $result['data']['counts']['pins'];
-                    $board->collaborators = $result['data']['counts']['collaborators'];
-                    $board->followers = $result['data']['counts']['followers'];
-                    $board->save();
-                }
-            }
-        }
+        Artisan::call('update:boards');
         return redirect('/admin/boards');
     }
 }
