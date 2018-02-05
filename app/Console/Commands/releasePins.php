@@ -121,7 +121,7 @@ class releasePins extends Command
                 if (isset($result['data']) && isset($result['data']['id'])) {
                     $boards = new Boards();
                     $boards->name = $result['data']['name'];
-                    $boards->name = $result['data']['url'];
+                    $boards->url = $result['data']['url'];
                     $boards->save();
                 }
             }
