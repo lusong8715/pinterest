@@ -73,7 +73,7 @@ class repinPins extends Command
         $result = $rows + $rows2;
         foreach ($result as $row) {
             $image = public_path('upload') . '/' . $row->image;
-            $board = strtolower(preg_replace('/\s+/', '-', $row->board));
+            $board = getBoardNameForUrl($row->board);
             $data = array();
             $data['board'] = $username . '/' . $board;
             $obj = new \CurlFile($image);

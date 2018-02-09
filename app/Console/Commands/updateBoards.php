@@ -44,11 +44,11 @@ class updateBoards extends Command
             $apiBaseUrl = 'https://api.pinterest.com/v1/boards/';
             $boards = Boards::all();
             foreach ($boards as $board) {
-                $name = strtolower(preg_replace('/\s+/', '-', $board->name));
+                $name = getBoardNameForUrl($board->name);
                 $url = $apiBaseUrl . $config->username . '/' . $name . '/?access_token=' . $config->access_token . '&fields=id,name,url,counts';
                 $result = curlRequest('get', $url);
                 if (isset($result['data']) && isset($result['data']['id'])) {
-                    if ($name == strtolower(preg_replace('/\s+/', '-', $result['data']['name']))) {
+                    if ($name == getBoardNameForUrl($result['data']['name'])) {
                         $board->name = $result['data']['name'];
                     }
                     $board->url = $result['data']['url'];

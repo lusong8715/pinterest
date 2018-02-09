@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
             $config = Config::find(1);
             if ($config->username && $config->access_token) {
                 $apiBaseUrl = 'https://api.pinterest.com/v1/boards/';
-                $boardName = strtolower(preg_replace('/\s+/', '-', $board->name));
+                $boardName = getBoardNameForUrl($board->name);
 
                 $url = $apiBaseUrl . $config->username . '/' . $boardName . '/?access_token=' . $config->access_token . '&fields=id,name,url,counts';
                 $result = curlRequest('get', $url);

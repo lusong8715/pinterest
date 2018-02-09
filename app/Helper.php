@@ -32,3 +32,9 @@ function updateSitemap() {
     fwrite($fp, $xml);
     fclose($fp);
 }
+
+function getBoardNameForUrl($name) {
+    $boardName = strtolower(preg_replace('/\s+/', '-', $name));
+    $boardName = str_replace("'", '', $boardName);
+    return $boardName;
+}

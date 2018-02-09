@@ -60,7 +60,7 @@ class releasePins extends Command
                 $releasesTime = substr($custom->releases_time, 0, strpos($custom->releases_time, ':'));
                 if ($nowTime == $releasesTime) {
                     $image = public_path('upload') . '/' . $custom->image;
-                    $board = strtolower(preg_replace('/\s+/', '-', $custom->board));
+                    $board = getBoardNameForUrl($custom->board);
 
                     $url = self::API_BASE_URL . 'boards/' . $username . '/' . $board . '/?access_token=' . $accessToken;
                     $result = curlRequest('get', $url);
@@ -110,7 +110,7 @@ class releasePins extends Command
         foreach ($products as $product) {
             $imageUrl = self::IMAGE_BASE_URL . rawurlencode($product->sku) . '.jpg';
             $category = $product->category;
-            $board = strtolower(preg_replace('/\s+/', '-', $category));
+            $board = getBoardNameForUrl($category);
 
             $url = self::API_BASE_URL . 'boards/' . $username . '/' . $board . '/?access_token=' . $accessToken;
             $result = curlRequest('get', $url);

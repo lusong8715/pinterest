@@ -63,7 +63,7 @@ class updatePins extends Command
             $config->sync_board_id = $board->id;
             $next = '';
             while ($next !== false) {
-                $boardName = strtolower(preg_replace('/\s+/', '-', $board->name));
+                $boardName = getBoardNameForUrl($board->name);
                 $url = self::API_BASE_URL . 'boards/' . $config->username . '/' . $boardName . '/pins/?access_token=' . $config->access_token . '&fields=id%2Curl%2Ccounts%2Cnote%2Cimage%2Coriginal_link';
                 if ($next) {
                     $url .= '&cursor=' . $next;
