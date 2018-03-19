@@ -34,7 +34,7 @@ function updateSitemap() {
 }
 
 function getBoardNameForUrl($name) {
-    $boardName = strtolower(preg_replace('/\s+/', '-', $name));
-    $boardName = str_replace("'", '', $boardName);
+    $boardName = strtolower(preg_replace('/[^0-9a-zA-Z ]*/', '', $name));
+    $boardName = preg_replace('/\s+/', '-', $boardName);
     return $boardName;
 }
