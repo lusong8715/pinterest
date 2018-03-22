@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\releasePins',
         'App\Console\Commands\updatePins',
         'App\Console\Commands\repinPins',
+        'App\Console\Commands\repinTop10',
         'App\Console\Commands\updateBoards',
     ];
 
