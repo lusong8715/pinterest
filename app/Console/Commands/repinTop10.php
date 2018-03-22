@@ -7,21 +7,21 @@ use App\Models\Pins;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class repinPins extends Command
+class repinTop10 extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'repin:pins';
+    protected $signature = 'repin:top10';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Auto Repin Pins';
+    protected $description = 'Auto Repin Top10 Pins';
 
     const API_BASE_URL = 'https://api.pinterest.com/v1/';
     const TOP_PIN_BOARD = 'Top Pins: Jeulia.com';
@@ -51,32 +51,21 @@ class repinPins extends Command
         $accessToken = $config->access_token;
         $updateSitemap = false;
         $date7 = date('Y-m-d', strtotime('-7 day'));
-        $date30 = date('Y-m-d', strtotime('-30 day'));
+        $date10 = date('Y-m-d', strtotime('-10 day'));
 
-        // 原生pin过去30天内saves增长大于3并且发布时间超过一周时,repin
-        $rows = DB::select("select pins.pin_id as pinid, custom.title, custom.image, custom.board, custom.note, custom.link 
-                    from custom inner join pins on pins.pin_id = custom.pin_id 
-                    where custom.status = '1'
-                    and pins.advertised = '0'
-                    and pins.board != ?
-                    and pins.created_at < ?
-                    and not exists(select 1 from pins as p where p.root_pin = custom.pin_id) 
-                    and (select sum(saves_change) as sumsave from pin_data_history as pdh where pdh.pins_id = pins.id and pdh.update_date > ? having sumsave > ?)", [self::TOP_PIN_BOARD, $date7, $date30, 3]);
+        // 每周repin一次top10,已经repin过的隔一周再repin
+        $rows = DB::select("select p.pin_id as pinid, c.title, c.image, c.note, c.link, sum(pdh.saves_change) as allsaves 
+                      from custom as c 
+                      inner join pins as p on p.pin_id = c.pin_id 
+                      inner join pin_data_history as pdh on p.id = pdh.pins_id 
+                      where c.status = '1' 
+                      and pdh.update_date > ? 
+                      and not exists(select 1 from pins as pi where pi.root_pin = c.pin_id and pi.created_at > ?) 
+                      group by p.id order by allsaves desc, p.id desc limit 10;", [$date7, $date10]);
 
-        // repin过的pin过去7天内saves增长大于10并且发布时间超过一周时,再次repin
-        $rows2 = DB::select("select p.root_pin as pinid, p.title, p.board, c.image, c.note, c.link, max(p.created_at) as rdate 
-                      from pins as p inner join custom c on p.root_pin = c.pin_id 
-                      where p.way = '1' 
-                      and p.advertised = '0' 
-                      and p.board != ?
-                      and (select sum(saves_change) as sumsave from pin_data_history as pdh where pdh.pins_id = p.id and pdh.update_date > ? having sumsave > ?) 
-                      group by p.root_pin 
-                      having rdate < ?", [self::TOP_PIN_BOARD, $date7, 10, $date7]);
-
-        $result = $rows + $rows2;
-        foreach ($result as $row) {
+        foreach ($rows as $row) {
             $image = public_path('upload') . '/' . $row->image;
-            $board = getBoardNameForUrl($row->board);
+            $board = getBoardNameForUrl(self::TOP_PIN_BOARD);
             $data = array();
             $data['board'] = $username . '/' . $board;
             $obj = new \CurlFile($image);
@@ -91,7 +80,7 @@ class repinPins extends Command
                 $pins = new Pins();
                 $pins->pin_id = $result['data']['id'];
                 $pins->title = $row->title;
-                $pins->board = $row->board;
+                $pins->board = self::TOP_PIN_BOARD;
                 $pins->url = $result['data']['url'];
                 $pins->way = '1';
                 $pins->root_pin = $row->pinid;
