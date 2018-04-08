@@ -48,9 +48,7 @@ class updateBoards extends Command
                 $url = $apiBaseUrl . $config->username . '/' . $name . '/?access_token=' . $config->access_token . '&fields=id,name,url,counts';
                 $result = curlRequest('get', $url);
                 if (isset($result['data']) && isset($result['data']['id'])) {
-                    if ($name == getBoardNameForUrl($result['data']['name'])) {
-                        $board->name = $result['data']['name'];
-                    }
+                    $board->name = $result['data']['name'];
                     $board->url = $result['data']['url'];
                     $board->pins = $result['data']['counts']['pins'];
                     $board->collaborators = $result['data']['counts']['collaborators'];

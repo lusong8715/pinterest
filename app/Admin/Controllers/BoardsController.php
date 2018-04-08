@@ -96,6 +96,8 @@ class BoardsController extends Controller
                 $filter->disableIdFilter();
                 $filter->like('name', 'Name');
             });
+            $grid->perPages([50, 100, 200]);
+            $grid->paginate(50);
         });
     }
 

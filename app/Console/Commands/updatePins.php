@@ -64,7 +64,7 @@ class updatePins extends Command
             $next = '';
             while ($next !== false) {
                 $boardName = getBoardNameForUrl($board->name);
-                $url = self::API_BASE_URL . 'boards/' . $config->username . '/' . $boardName . '/pins/?access_token=' . $config->access_token . '&fields=id%2Curl%2Ccounts%2Cnote%2Cimage%2Coriginal_link';
+                $url = self::API_BASE_URL . 'boards/' . $config->username . '/' . $boardName . '/pins/?access_token=' . $config->access_token . '&fields=id%2Curl%2Ccounts%2Cnote%2Cimage%2Coriginal_link%2Cboard';
                 if ($next) {
                     $url .= '&cursor=' . $next;
                 }
@@ -98,6 +98,10 @@ class updatePins extends Command
                             }
                             if ($pins->original_link != $data['original_link']) {
                                 $pins->original_link = $data['original_link'];
+                                $updateFlag = true;
+                            }
+                            if ($pins->board != $data['board']['name']) {
+                                $pins->board = $data['board']['name'];
                                 $updateFlag = true;
                             }
                             if ($updateFlag) {
