@@ -129,6 +129,7 @@ class PinsController extends Controller
                 }, 'Is Repin')->select([1 => 'Yes', 2 => 'No']);
                 $filter->is('root_pin', 'Root Pin Id');
             });
+            $grid->model()->orderBy('id', 'desc');
 
             $grid->disableCreation();
             $grid->disableActions();

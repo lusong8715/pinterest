@@ -74,7 +74,7 @@ class CustomController extends Controller
     {
         return Admin::grid(Custom::class, function (Grid $grid) {
             $grid->model()->where('status', '=', '0');
-            $grid->model()->orderBy('releases_time', 'desc');
+            $grid->model()->orderBy('releases_time', 'asc');
 
             $grid->id('ID')->sortable();
             $grid->title();
